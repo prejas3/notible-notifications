@@ -333,7 +333,7 @@ function mountBell(center, container) {
     panel.append(element("div", { className: "nnot-head" }, [
       text("span", "Notifications"),
       element("div", { className: "nnot-head-actions" }, [
-        element("button", { type: "button", className: "nnot-link", textContent: formOpen ? "Cancel" : "+ Reminder", onclick: () => { formOpen = !formOpen; render(); } }),
+        element("button", { type: "button", className: "nnot-link", textContent: formOpen ? "Cancel" : "+ Reminder", title: "A quick reminder — a message and a time, separate from Calendar event reminders or Automations.", onclick: () => { formOpen = !formOpen; render(); } }),
         element("button", { type: "button", className: "nnot-link", textContent: "Clear", onclick: () => void center.clearAll() }),
       ]),
     ]));
@@ -358,7 +358,7 @@ function mountBell(center, container) {
       return;
     }
     if (center.entries.length === 0) {
-      if (center.reminders.length === 0 && !formOpen) panel.append(text("p", "Nothing yet. An automation's “notify” action lands here, or add a reminder above.", "nnot-empty"));
+      if (center.reminders.length === 0 && !formOpen) panel.append(text("p", "Nothing yet. Add a reminder above, or one will land here when something you've set up elsewhere notifies you.", "nnot-empty"));
       return;
     }
     const list = element("ul", { className: "nnot-list" });
@@ -440,7 +440,7 @@ export default {
   manifest: {
     id: "notible.notifications",
     name: "Notible Notifications",
-    version: "0.1.5",
+    version: "0.1.6",
     apiVersion: "1.10",
     description: "An in-app trail for what Automations already fires as an OS toast, plus its own standalone reminders — a message, a date and a time, with no rule editor or calendar required. A toast is gone the moment it is missed; this keeps a short, readable log behind a bell icon in the sidebar, with an unread count and a one-click clear.",
     author: "Notible",
