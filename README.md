@@ -40,8 +40,3 @@ is only the notice that it did it.
 `data.read`, `data.write`, `workspace.ui`. No `notifications` (OS toast)
 permission — that one belongs to Automations, which is the plugin that
 calls `context.notifications.show`.
-
-## Install
-
-In Notible: **Settings -> Plugins -> Market**, then install "Notible Notifications".
-This repo is the source; the market pulls `plugin.json` + `notible.notifications.zip` from the latest GitHub Release.

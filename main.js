@@ -440,9 +440,9 @@ export default {
   manifest: {
     id: "notible.notifications",
     name: "Notible Notifications",
-    version: "0.1.6",
+    version: "0.1.7",
     apiVersion: "1.10",
-    description: "An in-app trail for what Automations already fires as an OS toast, plus its own standalone reminders — a message, a date and a time, with no rule editor or calendar required. A toast is gone the moment it is missed; this keeps a short, readable log behind a bell icon in the sidebar, with an unread count and a one-click clear.",
+    description: "A bell in the sidebar that keeps what Notible told you — reminders and automation messages — so a missed notification isn't gone. Also simple reminders: a message, a date and a time.",
     author: "Notible",
     permissions: ["data.read", "data.write", "workspace.ui", "notifications"],
   },
