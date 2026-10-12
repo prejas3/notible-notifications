@@ -16,6 +16,13 @@
  * them under plain node; the plugin itself is the default export.
  */
 
+// I18N (Hive #28): every UI string goes through t(); Polish is in
+// locales/pl.json (checked by scripts/plugin-locale-check.mjs). English until
+// onload() hands t over to Core's translator, which also follows a language
+// change. tr() only marks a module-level label that is passed to t() later.
+let t = (key, values) => (values ? key.replace(/\{(\w+)\}/g, (whole, name) => (name in values ? String(values[name]) : whole)) : key);
+const tr = (key) => key;
+
 export const NOTIFICATION_TYPE = "notification";
 /** A standalone reminder: a message plus a due moment, with no tie to
  * Automations or Calendar. Most people who just want "remind me at 3pm
@@ -41,7 +48,7 @@ export function parseNotification(object) {
     if (typeof props.read === "boolean") read = props.read;
     if (typeof props.at === "number") at = props.at;
   } catch { /* a malformed props blob reads as an unread, bodyless entry */ }
-  return { id: object.id, title: object.title || "Notification", body, read, at, updatedAt: object.updated_at };
+  return { id: object.id, title: object.title || t("Notification"), body, read, at, updatedAt: object.updated_at };
 }
 
 function serializeNotification(entry) {
@@ -74,12 +81,12 @@ export function dueLabel(dueAtMs, nowMs = Date.now()) {
   const due = new Date(dueAtMs);
   const now = new Date(nowMs);
   const time = due.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  if (dueAtMs <= nowMs) return "Overdue";
+  if (dueAtMs <= nowMs) return t("Overdue");
   const sameDay = due.toDateString() === now.toDateString();
-  if (sameDay) return `Today, ${time}`;
+  if (sameDay) return t("Today, {time}", { time });
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  if (due.toDateString() === tomorrow.toDateString()) return `Tomorrow, ${time}`;
+  if (due.toDateString() === tomorrow.toDateString()) return t("Tomorrow, {time}", { time });
   return due.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
@@ -101,10 +108,10 @@ export function relativeTime(atMs, nowMs = Date.now()) {
   const minute = 60000;
   const hour = 3600000;
   const day = 86400000;
-  if (diff < minute) return "just now";
-  if (diff < hour) return `${Math.floor(diff / minute)}m ago`;
-  if (diff < day) return `${Math.floor(diff / hour)}h ago`;
-  if (diff < 7 * day) return `${Math.floor(diff / day)}d ago`;
+  if (diff < minute) return t("just now");
+  if (diff < hour) return t("{count}m ago", { count: Math.floor(diff / minute) });
+  if (diff < day) return t("{count}h ago", { count: Math.floor(diff / hour) });
+  if (diff < 7 * day) return t("{count}d ago", { count: Math.floor(diff / day) });
   return new Date(atMs).toLocaleDateString();
 }
 
@@ -198,8 +205,8 @@ class NotificationCenter {
     for (const entry of due) {
       const overdueMs = now - entry.dueAt;
       if (overdueMs <= REMINDER_CATCH_UP_WINDOW_MS) {
-        await this.context.notifications.show({ title: entry.message || "Reminder" }).catch(() => {});
-        await this.context.data.objects.create({ type: NOTIFICATION_TYPE, title: entry.message || "Reminder", props: JSON.stringify({ body: "", read: false, at: now }) }).catch(() => {});
+        await this.context.notifications.show({ title: entry.message || t("Reminder") }).catch(() => {});
+        await this.context.data.objects.create({ type: NOTIFICATION_TYPE, title: entry.message || t("Reminder"), props: JSON.stringify({ body: "", read: false, at: now }) }).catch(() => {});
       }
       await this.context.data.objects.update(entry.id, { props: serializeReminder({ ...entry, fired: true }) }).catch(() => {});
     }
@@ -251,18 +258,18 @@ function row(center, entry) {
 function reminderRow(center, entry) {
   const item = element("li", { className: "nnot-row nnot-reminder-pending" });
   const body = element("div", { className: "nnot-body" }, [
-    text("strong", entry.message || "Reminder", "nnot-title"),
+    text("strong", entry.message || t("Reminder"), "nnot-title"),
     text("small", dueLabel(entry.dueAt), "nnot-time"),
   ]);
   item.append(body);
-  item.append(element("button", { type: "button", className: "nnot-link", textContent: "Cancel", "aria-label": `Cancel reminder: ${entry.message || "Reminder"}`, onclick: (event) => { event.stopPropagation(); void center.cancelReminder(entry); } }));
+  item.append(element("button", { type: "button", className: "nnot-link", textContent: t("Cancel"), "aria-label": t("Cancel reminder: {message}", { message: entry.message || t("Reminder") }), onclick: (event) => { event.stopPropagation(); void center.cancelReminder(entry); } }));
   return item;
 }
 
 function mountBell(center, container) {
   const root = element("div", { className: "nnot" });
   root.append(element("style", { textContent: styles }));
-  const button = element("button", { type: "button", className: "nnot-bell", title: "Notifications", "aria-label": "Notifications" });
+  const button = element("button", { type: "button", className: "nnot-bell", title: t("Notifications"), "aria-label": t("Notifications") });
   button.append(bellIcon());
   const badge = text("span", "", "nnot-badge");
   button.append(badge);
@@ -312,8 +319,8 @@ function mountBell(center, container) {
   // want "remind me at 3pm tomorrow" should not have to learn a rule editor
   // or connect a calendar first.
   let formOpen = false;
-  const messageInput = element("input", { type: "text", className: "nnot-reminder-input", placeholder: "Remind me to…", title: "Reminder message" });
-  const dateInput = element("input", { type: "datetime-local", className: "nnot-reminder-date", title: "When" });
+  const messageInput = element("input", { type: "text", className: "nnot-reminder-input", placeholder: t("Remind me to…"), title: t("Reminder message") });
+  const dateInput = element("input", { type: "datetime-local", className: "nnot-reminder-date", title: t("When") });
   const submitReminder = () => {
     const message = messageInput.value.trim();
     const dueAt = dateInput.value ? new Date(dateInput.value).getTime() : NaN;
@@ -331,17 +338,17 @@ function mountBell(center, container) {
     badge.classList.toggle("is-visible", center.unreadCount > 0);
     panel.replaceChildren();
     panel.append(element("div", { className: "nnot-head" }, [
-      text("span", "Notifications"),
+      text("span", t("Notifications")),
       element("div", { className: "nnot-head-actions" }, [
-        element("button", { type: "button", className: "nnot-link", textContent: formOpen ? "Cancel" : "+ Reminder", title: "A quick reminder — a message and a time, separate from Calendar event reminders or Automations.", onclick: () => { formOpen = !formOpen; render(); } }),
-        element("button", { type: "button", className: "nnot-link", textContent: "Clear", onclick: () => void center.clearAll() }),
+        element("button", { type: "button", className: "nnot-link", textContent: formOpen ? t("Cancel") : t("+ Reminder"), title: t("A quick reminder — a message and a time, separate from Calendar event reminders or Automations."), onclick: () => { formOpen = !formOpen; render(); } }),
+        element("button", { type: "button", className: "nnot-link", textContent: t("Clear"), onclick: () => void center.clearAll() }),
       ]),
     ]));
     if (formOpen) {
       panel.append(element("div", { className: "nnot-reminder-form" }, [
         messageInput,
         dateInput,
-        element("button", { type: "button", className: "nnot-reminder-add", textContent: "Add", onclick: submitReminder }),
+        element("button", { type: "button", className: "nnot-reminder-add", textContent: t("Add"), onclick: submitReminder }),
       ]));
     }
     if (center.reminders.length > 0) {
@@ -350,7 +357,7 @@ function mountBell(center, container) {
       panel.append(pending);
     }
     if (center.loading) {
-      panel.append(text("p", "Loading…", "nnot-empty"));
+      panel.append(text("p", t("Loading…"), "nnot-empty"));
       return;
     }
     if (center.error) {
@@ -358,7 +365,7 @@ function mountBell(center, container) {
       return;
     }
     if (center.entries.length === 0) {
-      if (center.reminders.length === 0 && !formOpen) panel.append(text("p", "Nothing yet. Add a reminder above, or one will land here when something you've set up elsewhere notifies you.", "nnot-empty"));
+      if (center.reminders.length === 0 && !formOpen) panel.append(text("p", t("Nothing yet. Add a reminder above, or one will land here when something you've set up elsewhere notifies you."), "nnot-empty"));
       return;
     }
     const list = element("ul", { className: "nnot-list" });
@@ -440,7 +447,7 @@ export default {
   manifest: {
     id: "notible.notifications",
     name: "Notible Notifications",
-    version: "0.1.7",
+    version: "0.1.8",
     apiVersion: "1.10",
     description: "A bell in the sidebar that keeps what Notible told you — reminders and automation messages — so a missed notification isn't gone. Also simple reminders: a message, a date and a time.",
     author: "Notible",
@@ -448,6 +455,7 @@ export default {
   },
 
   onload(context) {
+    if (context.i18n?.t) t = (key, values) => context.i18n.t(key, values);
     const center = new NotificationCenter(context);
     this._center = center;
     this._disposables = [];

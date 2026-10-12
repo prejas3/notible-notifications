@@ -1,0 +1,25 @@
+{
+  "strings": {
+    "Notification": "Powiadomienie",
+    "Overdue": "Po terminie",
+    "Today, {time}": "Dziś, {time}",
+    "Tomorrow, {time}": "Jutro, {time}",
+    "just now": "przed chwilą",
+    "{count}m ago": "{count} min temu",
+    "{count}h ago": "{count} godz. temu",
+    "{count}d ago": "{count} d temu",
+    "Reminder": "Przypomnienie",
+    "Cancel": "Anuluj",
+    "Cancel reminder: {message}": "Anuluj przypomnienie: {message}",
+    "Notifications": "Powiadomienia",
+    "Remind me to…": "Przypomnij mi, aby…",
+    "Reminder message": "Treść przypomnienia",
+    "When": "Kiedy",
+    "+ Reminder": "+ Przypomnienie",
+    "A quick reminder — a message and a time, separate from Calendar event reminders or Automations.": "Szybkie przypomnienie — treść i godzina, niezależne od przypomnień o wydarzeniach w Kalendarzu i od Automatyzacji.",
+    "Clear": "Wyczyść",
+    "Add": "Dodaj",
+    "Loading…": "Wczytywanie…",
+    "Nothing yet. Add a reminder above, or one will land here when something you've set up elsewhere notifies you.": "Na razie nic. Dodaj przypomnienie powyżej albo poczekaj, aż coś ustawionego gdzie indziej wyśle tu powiadomienie."
+  }
+}
